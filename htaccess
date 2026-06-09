@@ -1,0 +1,152 @@
+# =============================================================================
+# .htaccess — Refresh D Thai Spa
+# https://refreshdthaispa.com
+# =============================================================================
+
+Options -Indexes
+
+# =============================================================================
+# 1. FORCE HTTPS
+# =============================================================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Redirect HTTP to HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Redirect www to non-www (canonical domain)
+  RewriteCond %{HTTP_HOST} ^www\.refreshdthaispa\.com [NC]
+  RewriteRule ^ https://refreshdthaispa.com%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# =============================================================================
+# 2. CLEAN URL REWRITES (remove .html extension)
+# =============================================================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  
+  # Redirect index.html to /
+  RewriteCond %{THE_REQUEST} /index\.html
+  RewriteRule ^ / [R=301,L]
+
+  # If the request is not an existing file or directory
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Map clean URLs to .html files
+  RewriteRule ^gallery$       gallery.html       [L]
+  RewriteRule ^blog$          blog.html          [L]
+  RewriteRule ^careers$       careers.html       [L]
+  RewriteRule ^privacy-policy$ privacy_policy.html [L]
+
+  # Redirect .html URLs to clean URLs (avoid duplicate content)
+  RewriteCond %{THE_REQUEST} /gallery\.html
+  RewriteRule ^ /gallery [R=301,L]
+
+  RewriteCond %{THE_REQUEST} /blog\.html
+  RewriteRule ^ /blog [R=301,L]
+
+  RewriteCond %{THE_REQUEST} /careers\.html
+  RewriteRule ^ /careers [R=301,L]
+
+  RewriteCond %{THE_REQUEST} /privacy_policy\.html
+  RewriteRule ^ /privacy-policy [R=301,L]
+</IfModule>
+
+# =============================================================================
+# 3. GZIP COMPRESSION (speeds up page load)
+# =============================================================================
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE application/xml
+</IfModule>
+
+# =============================================================================
+# 4. BROWSER CACHING (improves Core Web Vitals / PageSpeed score)
+# =============================================================================
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Images
+  ExpiresByType image/jpeg                  "access plus 1 year"
+  ExpiresByType image/png                   "access plus 1 year"
+  ExpiresByType image/gif                   "access plus 1 year"
+  ExpiresByType image/webp                  "access plus 1 year"
+  ExpiresByType image/svg+xml               "access plus 1 year"
+  ExpiresByType image/x-icon               "access plus 1 year"
+
+  # Fonts
+  ExpiresByType font/woff                   "access plus 1 year"
+  ExpiresByType font/woff2                  "access plus 1 year"
+  ExpiresByType application/font-woff       "access plus 1 year"
+
+  # CSS & JS
+  ExpiresByType text/css                    "access plus 1 month"
+  ExpiresByType application/javascript      "access plus 1 month"
+  ExpiresByType text/javascript             "access plus 1 month"
+
+  # HTML
+  ExpiresByType text/html                   "access plus 1 day"
+
+  # XML / Sitemap
+  ExpiresByType application/xml             "access plus 1 day"
+  ExpiresByType text/xml                    "access plus 1 day"
+</IfModule>
+
+# =============================================================================
+# 5. SECURITY HEADERS (required for Google Ads landing page approval)
+# =============================================================================
+<IfModule mod_headers.c>
+  # Prevent clickjacking
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # Prevent MIME type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Enable XSS protection in older browsers
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # Referrer policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Remove server info from headers
+  Header unset Server
+  Header unset X-Powered-By
+</IfModule>
+
+# =============================================================================
+# 6. CUSTOM ERROR PAGES
+# =============================================================================
+ErrorDocument 404 /index.html
+ErrorDocument 403 /index.html
+
+# =============================================================================
+# 7. PROTECT SENSITIVE FILES
+# =============================================================================
+<FilesMatch "(^\.htaccess|\.htpasswd|\.env|\.git)">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# BEGIN WordPress
+# The directives (lines) between "BEGIN WordPress" and "END WordPress" are
+# dynamically generated, and should only be modified via WordPress filters.
+# Any changes to the directives between these markers will be overwritten.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# END WordPress
